@@ -1,6 +1,5 @@
 EUvsVirus_ProjectClusters
 ==============================
-[![Deon badge](https://img.shields.io/badge/ethics%20checklist-deon-brightgreen.svg?style=popout-square)](http://deon.drivendata.org/)
 
 Collect project descriptions from EUvsVirus Hackathon devpost, and perform text analysis & clustering.
 
@@ -9,6 +8,10 @@ Project Organization
 
     ├── LICENSE
     ├── README.md          <- The top-level README for developers using this project.
+    ├── ETHICS.md          <- ETHICS checklist for this project.
+    │
+    ├── environment.yml          <- Anaconda environment for reproducing the analysis environment, e.g.
+    │
     ├── data	<- Don't use this directory, as we have a DropBox folder for that.
     │   ├── external       <- Data from third party sources.
     │   ├── interim        <- Intermediate data that has been transformed.
