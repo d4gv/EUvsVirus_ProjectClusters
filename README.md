@@ -1,5 +1,6 @@
 EUvsVirus_ProjectClusters
 ==============================
+[![Deon badge](https://img.shields.io/badge/ethics%20checklist-deon-brightgreen.svg?style=popout-square)](http://deon.drivendata.org/)
 
 Collect project descriptions from EUvsVirus Hackathon devpost, and perform text analysis & clustering.
 
