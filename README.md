@@ -41,8 +41,9 @@ Project Organization
          │
          ├── clustering       <- Scripts to cluster Hackathon projects.
          │
-         └── presentation	  <- Scripts to visualize and present insights.
-
+         ├── presentation	  <- Scripts to visualize and present insights.
+         │
+         └── test			  <- Testscripts.
 
 --------
 
