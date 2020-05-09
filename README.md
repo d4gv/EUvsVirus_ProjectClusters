@@ -43,7 +43,7 @@ Project Organization
          │
          ├── presentation	  <- Scripts to visualize and present insights.
          │
-         └── test			  <- Testscripts.
+         └── test		<- Testscripts.
 
 --------
 
