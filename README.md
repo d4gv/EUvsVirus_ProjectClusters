@@ -47,4 +47,12 @@ Project Organization
 
 --------
 
+## Contributors
+
+* [Rania Wazir](https://github.com/rrania4r)
+* [Jillian Augustine](https://github.com/jill-augustine)
+* [Laura Vana](https://github.com/lauravana)
+* [Thomas Treml](https://github.com/datadonK23)
+
+
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
