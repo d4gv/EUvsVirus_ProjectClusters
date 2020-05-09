@@ -19,35 +19,31 @@ Author: datadonk23
 Date: 07.05.20 
 """
 
+import os
 import json
 import logging
 logging.getLogger().setLevel(logging.INFO)
 
-from request_util import make_request
+from request_util import make_request, filter_response
+import pandas as pd
 
+def get_filtered_data(proj):
+    '''Given a project name, returns filtered response and success indicator
+    
+    :param proj: project name
+    :type proj: str
+    :return: tuple of response and success indicator'''
+    logging.info("Fetch data from " + str(proj))
 
-def filter_response(resp):
-    """ Filters requests according to desired schema.
+    req_url = host + project_endpoint + proj
+    resp = make_request(req_url)
 
-    :param resp: requests.Response
-    :return: Filtered data
-    :return type: dict
-    """
-    data = {}
-    json_resp = resp.json()
+    filtered_response = filter_response(resp)
+    filtered_response['proj_url'] = "https://devpost.com/software/"+proj
 
-    if json_resp["title"]:
-        data["title"] = json_resp["title"]
-    else:
-        data["title"] = None
-
-    if json_resp["text"]:
-        data["text"] = json_resp["text"]
-    else:
-        data["text"] = None
-
-    return data
-
+    success =  True if resp is not None else False
+    
+    return (filtered_response, success)
 
 def perist_fetched_data(fetched_data, f_path):
     """ Persist fetched data as JSON file.
@@ -66,18 +62,24 @@ if __name__ == "__main__":
     host = "http://127.0.0.1:5000"
     project_endpoint = "/project/"
     fetched_data = []
-    output_fpath = "data/EUvsVirus_projects.json"
+    data_dir = os.path.join(os.environ["HOME"],"Dropbox","EUvsVirus")
+    output_fpath = os.path.join(data_dir,"EUvsVirus_projects.json")
 
-    #FIXME fetched proj names list goes here
-    test_proj_list = ["zero_project",
-                      "eunia-european-union-national-informal-assistance-oz4kcp",
-                      "crowd-free-x08uy5", "covid-gur92q", "jobliebe",
-                      "myminoritymatters"]
+    projectURLS_df = pd.read_csv(os.path.join(data_dir,"projectURLS.csv"))
+    proj_names = projectURLS_df.ProjURL.str.extract(r"(?<=https://devpost.com/software/)(.+$)",expand=False).tolist()
 
-    for proj in test_proj_list:
-        logging.info("Fetch data from " + str(proj))
-        req_url = host + project_endpoint + proj
-        resp = make_request(req_url)
-        fetched_data.append(filter_response(resp))
+    all_responses = [None for x in range(len(proj_names))]
+    for i in range(len(proj_names)):
+        print(f"Project {i+1} of {len(proj_names)}")
+        all_responses[i] = get_filtered_data(proj_names[i])
 
-    perist_fetched_data(fetched_data,output_fpath)
+    perist_fetched_data([x[0] for x in all_responses],output_fpath)
+
+    all_responses_df = pd.DataFrame.from_records(all_responses, columns=['Response','Success'])
+    print(f'{all_responses_df.Success.sum()} of {len(all_responses_df)} URLs were successfully scraped.')
+
+    all_data = (projectURLS_df.merge(all_responses_df.Response.apply(pd.Series), 
+                                    left_on='ProjURL', right_on='proj_url', how='left')
+                              .drop(columns='proj_url')
+    )
+    all_data.to_csv(os.path.join(data_dir,'all_data.tsv'), sep='\t', index=False)
