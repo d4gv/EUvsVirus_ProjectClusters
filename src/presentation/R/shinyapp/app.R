@@ -2,7 +2,32 @@
 # This is a Shiny web application for visualizing the clustering results of the EUvsVirus Hackathon projects
 # To generate the app press the 'Run App' button above.
 #
-
+# The app consists of five panes: 
+#    1) Figure 1: A two dimensional visualization of the clusters
+#       * For this visualization the T-Distributed Stochastic Neighbor Embedding  (TSNE)
+#         has been used as a dimensionality reduction tool on the Document term matrix. 
+#       * The points represented in the graphs represent the average values of the two dimensions 
+#         obtained by TSNE for each cluster (a sort of cluster centers).
+#       * Alternatives: Multidimensional scaling on a distance matrix etc.
+#       * The size of the points is proportional to the number of projects in each cluster.
+#       * Clusters can be selected by clicking on the respective clusters or by brushing the graph (thus selecting more clusters).
+#
+#    2) Table 1: A table with descriptives for each clusters
+#       * Contains the cluster number, the number of projects in each cluster (maybe number of challenges/sub-challenges under which the projects were submitted).
+#       * If no cluster is selected from Figure 1, this table contains all clusters. Otherwise it contains the clusters selected in the graph.
+#
+#    3) Table 2: A table which contains information on the projects selected in Table 1. 
+#       * Contains information on Cluster, Name of the project, maybe Challenge and Sub-challenge, Winner/No Winner
+#       * Cluster selection in Table 1 happens when clicking on the respective row of the table. 
+#       * If no row is clicked on, all projects in the clusters in Table 2 are shown.
+# 
+#    4) Table 3: A table containing the title and the text description of the projects selected in Table 2.
+#       * Projects can be selected in Table 2 by clicking on the respective row of the table. 
+# 
+#    5) Figure 2: Word clouds for the clusters selected in Table 1
+#       * Cluster selection in Table 1 happens when clicking on the respective row of the table. Maximum 6 clusters can be selected for the visualization.
+#       * If no row is clicked on, no word clouds are generated.
+# 
 
 library(shiny)
 if (!require("DT")) install.packages("DT"); library("DT") 
@@ -64,6 +89,9 @@ if (!file.exists(FILE_RES)) {
                            Abstract   = useR_2008_abstracts[,"Abstract"],
                            Cluster = paste("Cluster", clustering)
                            )
+    df$Cluster <- factor(df$Cluster, 
+                         levels = paste("Cluster", 1:max(clustering)))
+    df <- df[order(df$Cluster), ]
     
     save(df, file = FILE_RES)
 } else {
@@ -87,6 +115,7 @@ ui <- basicPage(
                dblclick = "plot_dblclick",
                hover = "plot_hover",
                brush = "plot_brush"),
+             #  width = "750px", height="750px"),
     sidebarLayout(
         #2("Clusters and project titles in the selected clusters"),
         sidebarPanel(
@@ -107,9 +136,10 @@ server <- function(input, output) {
     ## Plot the cluster centers based on the dimensionality reduction
     output$plot1 <- renderPlot({
         ggplot(centers, aes(x = x1, y = x2, size = noProjects))  +
-            geom_point(alpha = 0.7) +
-            scale_size(range = c(1.4, 10), name = "Number of projects") + 
-            theme(legend.position="none")
+            geom_point(alpha = 0.7) + 
+        geom_text(hjust = 1, size = 4, label = centers$Cluster) +
+        scale_size(range = c(1.4, 10), name = "Number of projects") + 
+        theme(legend.position="none")
     })
         
     ## Selected clusters
