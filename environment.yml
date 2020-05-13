@@ -1,5 +1,6 @@
 name: EUvsVirus_ProjectClusters
 channels:
+  - districtdatalabs
   - defaults
 dependencies:
   - _libgcc_mutex=0.1
@@ -37,6 +38,7 @@ dependencies:
   - ipywidgets=7.5.1
   - jedi=0.17.0
   - jinja2=2.11.2
+  - joblib=0.14.1
   - jpeg=9b
   - jsonschema=3.2.0
   - jupyter=1.0.0
@@ -60,6 +62,7 @@ dependencies:
   - matplotlib=3.1.3
   - matplotlib-base=3.1.3
   - mistune=0.8.4
+  - more-itertools=8.2.0
   - msgpack-numpy=0.4.3.2
   - msgpack-python=0.6.1
   - murmurhash=1.0.2
@@ -70,6 +73,7 @@ dependencies:
   - numpy=1.18.1
   - numpy-base=1.18.1
   - openssl=1.1.1g
+  - packaging=20.3
   - pandas=1.0.3
   - pandoc=2.2.3.2
   - pandocfilters=1.4.2
@@ -79,11 +83,13 @@ dependencies:
   - pickleshare=0.7.5
   - pip=20.0.2
   - plac=0.9.6
+  - pluggy=0.13.1
   - preshed=2.0.1
   - prometheus_client=0.7.1
   - prompt-toolkit=3.0.4
   - prompt_toolkit=3.0.4
   - ptyprocess=0.6.0
+  - py=1.8.1
   - pycparser=2.20
   - pygments=2.6.1
   - pyopenssl=19.1.0
@@ -91,6 +97,8 @@ dependencies:
   - pyqt=5.9.2
   - pyrsistent=0.16.0
   - pysocks=1.7.1
+  - pytest=5.4.1
+  - pytest-runner=5.2
   - python=3.6.10
   - python-dateutil=2.8.1
   - pytz=2020.1
@@ -101,6 +109,8 @@ dependencies:
   - readline=8.0
   - regex=2020.4.4
   - requests=2.23.0
+  - scikit-learn=0.22.1
+  - scipy=1.4.1
   - send2trash=1.5.0
   - setuptools=46.2.0
   - sip=4.19.8
@@ -124,12 +134,16 @@ dependencies:
   - widgetsnbextension=3.5.1
   - wrapt=1.10.11
   - xz=5.2.5
+  - yellowbrick=1.1
   - zeromq=4.3.1
   - zipp=3.1.0
   - zlib=1.2.11
   - pip:
     - emoji==0.5.4
     - en-core-web-md==2.2.5
+    - funcy==1.14
+    - future==0.18.2
+    - numexpr==2.7.1
+    - pyldavis==2.1.2
     - spacymoji==2.0.0
-prefix: /home/datadonk23/anaconda3/envs/EUvsVirus_ProjectClusters
 
