@@ -1,0 +1,188 @@
+---
+title: "EUvsVirus Hackathon: Clustering"
+author: Laura Vana
+output: 
+  html_notebook:
+    toc: true
+---
+
+## Data
+
+In the clustering exercise the `DocumentTermMatrix` created in `2.0-lv-DataPreparation.Rmd` will be used.
+
+```{r}
+if (!require("tm")) install.packages("tm"); library("tm")
+if (!require("slam")) install.packages("slam"); library("slam")
+
+project_DTM <- readRDS("project_DTM.rds")
+```
+
+The  `DocumentTermMatrix` matrix is converted to a weighted TF-IDF matrix:
+$$
+\mathrm{tf-idf}_{d,t} = \mathrm{tf}_{d,t} \times \mathrm{idf}_{t} 
+$$
+where for a given corpus $D$
+$$
+\mathrm{idf}_{t} = \log_2 \frac{N}{|d \in D: t\in d|}
+$$
+and the term frequency $\mathrm{tf}_{d,t}$ is weighted by the total number of terms in document $d$ ($n_{d,t}$is the no of occurrences of term $t$ in document $d$):
+$$
+\mathrm{tf}_{d,t} = \frac{n_{d,t}}{\sum_{k} n_{d,k}}.
+$$ 
+
+```{r}
+project_DTM <- weightTfIdf(project_DTM)
+tfidf.matrix <- as.matrix(project_DTM) 
+dim(tfidf.matrix)
+```
+
+## Latent semantic analysis
+In order to further reduce the dimension of the matrix, we could perform singular value decomposition by using the **lsa** package. This will result in a decomposition into a smaller dimensional space of "topics". Alternatively, one could use `LDA`, however, given that we expect 100-200 clusters, this moght prove computationally expensive.
+
+```{r}
+if (!require("lsa")) install.packages("lsa"); library("lsa")
+lsaSpace <- lsa(tfidf.matrix)
+str(lsaSpace)
+```
+The procedure identified `r ncol(lsaSpace$tk)` 'topics'. We work further on the reduced space:
+$$
+\text{lsaMatrixDocs}=T_k diag(d_k)
+$$
+
+```{r}
+lsaMatrixDocs <- lsaSpace$tk %*% diag(lsaSpace$sk) 
+dim(lsaMatrixDocs)
+```
+
+
+Given this new matrix, one can proceed with clustering algorithm such as K-means or hierarchical clustering.
+
+## K-means
+```{r}
+if (!require("cluster")) install.packages("cluster"); library("cluster")
+```
+
+We could perform K-means on a grid for the number of clusters $K$ between 100 and 200. We can inspect cluster evaluation measures such as within cluster sum of squares (WSS) or the average silhouette width (ASW).   Also the number of observations in each cluster is of relevance. We want 'balanced clusters' rather than one big cluster and small ones.
+```{r}
+set.seed(12345)
+Ks <- seq(100, 200, by = 10L)
+WSS <- sapply(Ks, function(k) {
+  kmeans(lsaMatrixDocs, k, 
+         iter.max = 50L, 
+         nstart = 10)$tot.withinss
+})
+d <- dist(lsaMatrixDocs) ## Euclidean dist
+ASW <- sapply(Ks, function(k) {
+  cl <- kmeans(lsaMatrixDocs, k, iter.max = 100L, nstart = 10)$cluster
+  si3 <- silhouette(cl, d)
+  summary(si3)$avg.width
+})
+
+no_of_members <-  sapply(Ks, function(k) {
+  cl <- kmeans(lsaMatrixDocs, k, iter.max = 100L, nstart = 10)$cluster
+ tab <- table(cl)
+ c(min(tab), max(tab))
+})
+```
+
+The WSS is 
+```{r}
+plot(Ks, WSS, type = "b")
+```
+
+The ASW is 
+```{r}
+plot(Ks, ASW, type = "b")
+```
+
+There is no clear picture which $K$ is the appropriate one. However, something around 170 would be plausible based on the maximal ASW. 
+
+```{r}
+plot(Ks, no_of_members[2,], type = "b",
+     ylim = c(0, max(no_of_members[2,]) + 10), 
+     ylab = "number of members")
+lines(Ks, no_of_members[1,], type = "b", col = "blue")
+```
+
+<!-- ## PAM  -->
+
+<!-- We could also use the partitioning around medoids approach, where we employ the `cosine` distance, which is more approapriate for text data. -->
+
+<!-- ```{r} -->
+<!-- cosine_sim <- lsa::cosine(t(lsaMatrixDocs)) -->
+<!-- dist_cos <- as.dist(1 - cosine_sim) -->
+<!-- dim(dist_cos) -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- Ks <- seq(100, 200, by = 20L) -->
+
+<!-- ASW_pam <- sapply(Ks, function(k) { -->
+<!--   print(k) -->
+<!--  pam(dist_cos, k)$silinfo$avg.width -->
+<!-- }) -->
+<!-- no_of_members <- sapply(Ks, function(k) { -->
+<!--  tab <-pam(dist_cos, k)$clusinfo[,1] -->
+<!--  c(min(tab), max(tab)) -->
+<!-- }) -->
+
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- plot(Ks, ASW_pam, type = "b") -->
+<!--  ``` -->
+<!--  ```{r} -->
+<!--  plot(Ks, no_of_members[2,], type = "b", -->
+<!--       ylim = c(0, max(no_of_members[2,]) + 10), ylab = "number of members") -->
+<!--  lines(Ks, no_of_members[1,], type = "b", col = "blue") -->
+<!--  ``` -->
+
+## Hierarchical clustering
+We perform hierarchical clustering using the cosine distance measure. 
+We use the agglometarive approach.
+The linkage will give differently sized clusters. The 'ward.D' measure seems to deliver more equally balanced clusters.
+```{r}
+model_hc <- hclust(dist_cos, method = "ward.D")
+```
+We cut the tree at different tree heights in order to obtain different number of clusters. We again use the same grid:
+```{r}
+ASW_hc <- sapply(Ks, function(k) {
+    si3 <- silhouette(cutree(model_hc, k = k),
+                      dist_cos)
+    summary(si3)$avg.width
+})
+
+WSS_hc <- sapply(Ks, function(k) {
+    cl <- cutree(model_hc, k = k)
+    l <- split(as.data.frame(lsaMatrixDocs), list(cl))
+    sum(sapply(l, function(m) {
+      if (nrow(m) == 1) sum(m) 
+      else sum(sapply(m, function(x) sum((x-mean(x))^2)))
+      }))
+  })
+
+no_of_members_hc <-  sapply(Ks, function(k) {
+ cl <- cutree(model_hc, k = k)
+ tab <- table(cl)
+ c(min(tab), max(tab))
+})
+```
+
+The WSS is 
+```{r}
+plot(Ks, WSS_hc, type = "b")
+```
+
+The ASW is 
+```{r}
+plot(Ks, ASW_hc, type = "b")
+```
+
+There is no clear picture which $K$ is the appropriate one. However, something around 170 would be plausible based on the maximal ASW. 
+
+```{r}
+plot(Ks, no_of_members_hc[2,], 
+     type = "b",
+     ylim = c(0, max(no_of_members_hc[2,]) + 10), 
+     ylab = "number of members")
+lines(Ks, no_of_members_hc[1,], type = "b", col = "blue")
+```
+This approach provides clusters which are more balanced. Choosing K around 170 would seem sensible.
