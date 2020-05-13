@@ -37,8 +37,11 @@ if (!require("movMF")) install.packages("movMF"); library("movMF")
 if (!require("tsne")) install.packages("tsne"); library("tsne") 
 if (!require("slam")) install.packages("slam"); library("slam") 
 if (!require("ggplot2")) install.packages("ggplot2"); library("ggplot2") 
+if (!require("plotly")) install.packages("plotly"); library("plotly") 
 if (!require("ggiraph")) install.packages("ggiraph"); library("ggiraph") 
-if (!require("wordcloud")) install.packages("wordcloud"); library("wordcloud") 
+if (!require("ggwordcloud")) install.packages("ggwordcloud"); library("ggwordcloud") 
+if (!require("RColorBrewer")) install.packages("RColorBrewer"); library("RColorBrewer") 
+
 
 FILE_RES <- "results_clustering.rda"
 if (!file.exists(FILE_RES)) {
@@ -46,7 +49,8 @@ if (!file.exists(FILE_RES)) {
     if(!nzchar(system.file(package = "corpus.useR.2008.abstracts"))) {
         templib <- tempfile(); dir.create(templib)
         install.packages("corpus.useR.2008.abstracts", lib = templib,
-                         repos = "https://datacube.wu.ac.at/", type = "source")
+                         repos = "https://datacube.wu.ac.at/", 
+                         type = "source")
         data("useR_2008_abstracts", package = "corpus.useR.2008.abstracts",
              lib.loc = templib)
     } else {
@@ -92,7 +96,25 @@ if (!file.exists(FILE_RES)) {
     df$Cluster <- factor(df$Cluster,
                          levels = paste("Cluster", 1:max(clustering)))
     df <- df[order(df$Cluster), ]
-    save(df, file = FILE_RES)
+    
+    ## Make frequency matrix
+    library("reshape")
+    m_cluster <- aggregate(m, by = list(paste("Cluster", clustering)), sum)
+    m_cluster
+    rownames(m_cluster) <- m_cluster$Group.1
+    m_cluster <- m_cluster[, -1]
+    long <- reshape(m_cluster, idvar = "Cluster", 
+                    ids = row.names(m_cluster),
+                    times = names(m_cluster), 
+                    timevar = "word",
+                    varying = list(names(m_cluster)), 
+                    direction = "long")
+    colnames(long)[2] <- "freq"
+    long <- long[order(long$Cluster, long$freq , decreasing = TRUE), ]
+    long$angle <- 90 * sample(c(0, 1), nrow(long), 
+                              replace = TRUE, prob = c(60, 40))
+    
+    save(df, long, file = FILE_RES)
 } else {
     load(FILE_RES)
 }
@@ -100,16 +122,12 @@ if (!file.exists(FILE_RES)) {
 centers <- aggregate(cbind(x1, x2) ~ Cluster, df, mean)
 centers <- cbind.data.frame(centers, noProjects = c(unname(table(df$Cluster))))
 
-make_freq_mat <- function(m) { 
-  v <- sort(colSums(m), decreasing = TRUE)
-  data.frame(word = names(v), freq = v)
-}
-
 # Define UI for application that draws a histogram
 ui <- basicPage(
     titlePanel("Clustering of EUvsVirus Projects"),
-    p("In order to select a cluster click or use the lasso selection tool."),
-    ggiraphOutput("plot1",  width = "2000px", height="1200px"),
+    p("In order to select a cluster use the lasso or the box selection tool."),
+    plotlyOutput("plot1"),
+    verbatimTextOutput("help"),
     sidebarLayout(
       sidebarPanel(
         h3("Selected clusters"),
@@ -119,36 +137,33 @@ ui <- basicPage(
         DT::dataTableOutput("table2"),
         h3("Description of projects selected in the above table"),
         DT::dataTableOutput("abstracts"),
-        h3("Select maximum 6 clusters to visualize word clouds."),
-        plotOutput("plot2", width = "750px", height="500px")
+        h3("Select clusters in the left side bar table to visualize word clouds."),
+        p("After selecting the clusters, press the action button."),
+        actionButton("goButton", "Go!"),
+        plotOutput("plot3")#, width = "750px", height="500px")
       )
     )
 )
 
 server <- function(input, output) {
     ## Plot the cluster centers based on the dimensionality reduction
-    output$plot1 <- renderggiraph({
-      gg_point = ggplot(data = centers) +
-        geom_point_interactive(aes(x = x1, y = x2, size = noProjects,
-                                   tooltip = Cluster, data_id = Cluster)) + 
-        scale_size(range = c(1.4, 10), name = "Number of projects") + 
-        theme(legend.position="none")
-      
-      girafe(ggobj = gg_point, width_svg = 10, height_svg = 10)
+    output$plot1 <- renderPlotly({
+      p <- ggplot(data = centers, aes(x = x1, y = x2, label = Cluster)) +
+        geom_point(aes(size = noProjects, alpha=.02)) +  
+        scale_size(range = c(1.4, 10), name = "Number of projects") +
+        xlab("") + ylab("")
+      ggplotly(p, source = "selected_clusters", tooltip=c("noProjects", "Cluster"))  %>% layout(dragmode = "lasso")      
     })  
     
-    ## Selected clusters
-    selected_clusters_in_plot <- reactive({
-      subset(centers, Cluster %in% input$plot1_selected)
+    get_selected_clusters_from_plot <- reactive({
+       d <- event_data("plotly_selected", source = "selected_clusters")
+      if (!is.null(d) & length(d) != 0) d[d$curveNumber == 0, "pointNumber"] + 1
     })
 
     selected_clusters_table <- reactive({
-        d <- selected_clusters_in_plot()
-        if (nrow(d) == 0){
-            centers[c("Cluster", "noProjects")]
-        } else {
-            d[, c("Cluster", "noProjects")]
-        }
+        id <- get_selected_clusters_from_plot()
+        if (is.null(id)) id <- 1:nrow(centers)
+        centers[id,  c("Cluster", "noProjects")]
     })
 
     output$table1 <- DT::renderDataTable({
@@ -177,7 +192,6 @@ server <- function(input, output) {
 
     ## Documents in the selected titles
     data_selected_titles <- reactive({
-        sel_cluster <- selected_clusters_2()
         d <- data_selected_clusters()
         s <- input$table2_rows_selected
         d[s, c("Title", "Abstract")]
@@ -190,29 +204,36 @@ server <- function(input, output) {
 
 
     ## generate and plot the word cloud for the selected clusters max 6 groups
-    output$plot2 <-  renderPlot({
-        s <- input$table1_rows_selected
-        if (is.null(s)) {
-
-        } else {
-            gmax <- 6
-            d <- data_selected_clusters()
-            dl <- split(d, factor(d$Cluster))
-            ncl <- length(dl)
-            if (ncl > gmax) dl <- dl[seq_len(gmax)]
-            par(mfrow = c(ceiling(ncl / 3), min(ncl, 3)))
-            #par(mfrow = c(1,3))
-            lapply(dl, function(dat){
-                freq_df <- make_freq_mat(dat[, -(ncol(dat) - 0:4)])
-                suppressWarnings(wordcloud(words = freq_df$word, freq = freq_df$freq,
-                                           max.words = 100, random.order=FALSE,
-                                           rot.per=0.35,
-                                           colors=brewer.pal(8, "Dark2")))
-            })
-        }
-
+    output$plot3 <-  renderPlot({
+      input$goButton
+      
+      # Use isolate() to avoid dependency on input$obs
+      isolate({
+      s <- input$table1_rows_selected
+      ncl <- length(s)
+      if (!is.null(s)) {
+        max_words <- 25
+        sel_cluster <- selected_clusters_2()
+        d <- long[long$Cluster %in% sel_cluster$Cluster, ]
+        id <- c(sapply(which(!duplicated(d$Cluster)), function(i) i + 0:(max_words - 1)))
+        d <- d[id, ]
+ 
+        p <- ggplot(d, aes(label = word, size = freq, angle = angle, col = freq)) + 
+          geom_text_wordcloud(rm_outside = TRUE, max_steps = 1,
+                              grid_size = 1, eccentricity = .9)+
+          scale_color_gradient(low="green3", high="violetred", 
+                               trans = "log10",
+                               guide = guide_colourbar(direction = "horizontal",
+                                                       title.position ="top")) +
+          
+          scale_size_area(max_size = 24) +
+          theme_minimal() + 
+          facet_wrap(~ Cluster, nrow = ceiling(ncl/3),
+                     ncol = min(ncl, 3))
+        p
+      }
     })
-    
+    })
 }
 
 shinyApp(ui, server)
