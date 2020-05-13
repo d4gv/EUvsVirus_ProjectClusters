@@ -1,5 +1,6 @@
 name: EUvsVirus_ProjectClusters
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - _libgcc_mutex=0.1
@@ -8,12 +9,12 @@ dependencies:
   - beautifulsoup4=4.9.0
   - blas=1.0
   - bleach=3.1.4
-  - ca-certificates=2020.1.1
+  - ca-certificates=2020.4.5.1
+  - catalogue=1.0.0
   - certifi=2020.4.5.1
-  - cffi=1.14.0
-  - chardet=3.0.4
-  - cryptography=2.9.2
   - cycler=0.10.0
+  - cymem=2.0.3
+  - cython-blis=0.4.1
   - dbus=1.13.14
   - decorator=4.4.2
   - defusedxml=0.6.0
@@ -27,16 +28,16 @@ dependencies:
   - gstreamer=1.14.0
   - icu=58.2
   - idna=2.9
-  - importlib_metadata=1.5.0
+  - importlib-metadata=1.6.0
   - intel-openmp=2020.0
-  - ipykernel=5.1.4
-  - ipython=7.13.0
+  - ipykernel=5.2.1
+  - ipython=7.14.0
   - ipython_genutils=0.2.0
   - ipywidgets=7.5.1
   - jedi=0.17.0
   - jinja2=2.11.2
   - jpeg=9b
-  - jsonschema=3.2.0
+  - jsonschema=2.6.0
   - jupyter=1.0.0
   - jupyter_client=6.1.3
   - jupyter_console=6.1.0
@@ -54,17 +55,17 @@ dependencies:
   - libxcb=1.13
   - libxml2=2.9.9
   - markupsafe=1.1.1
-  - matplotlib=3.1.3
-  - matplotlib-base=3.1.3
+  - matplotlib=3.1.2
   - mistune=0.8.4
   - mkl=2020.0
   - mkl-service=2.3.0
-  - mkl_fft=1.0.15
-  - mkl_random=1.1.0
+  - mkl_fft=1.0.10
+  - mkl_random=1.1.1
+  - murmurhash=1.0.0
   - nbconvert=5.6.1
   - nbformat=5.0.6
   - ncurses=6.2
-  - notebook=6.0.3
+  - notebook=5.2.2
   - numpy=1.18.1
   - numpy-base=1.18.1
   - openssl=1.1.1g
@@ -75,39 +76,42 @@ dependencies:
   - pcre=8.43
   - pexpect=4.8.0
   - pickleshare=0.7.5
-  - pip=20.0.2
+  - pip=20.1
+  - plac=0.9.6
+  - preshed=3.0.2
   - prometheus_client=0.7.1
   - prompt-toolkit=3.0.4
   - prompt_toolkit=3.0.4
   - ptyprocess=0.6.0
   - pycparser=2.20
   - pygments=2.6.1
-  - pyopenssl=19.1.0
   - pyparsing=2.4.7
   - pyqt=5.9.2
-  - pyrsistent=0.16.0
-  - pysocks=1.7.1
-  - python=3.8.2
+  - python=3.6.10
   - python-dateutil=2.8.1
+  - python_abi=3.6
   - pytz=2020.1
-  - pyzmq=18.1.1
+  - pyzmq=18.0.2
   - qt=5.9.7
   - qtconsole=4.7.3
   - qtpy=1.9.0
   - readline=8.0
-  - requests=2.23.0
-  - send2trash=1.5.0
-  - setuptools=46.1.3
-  - sip=4.19.13
+  - requests=2.13.0
+  - setuptools=46.2.0
+  - sip=4.19.8
   - six=1.14.0
   - soupsieve=2.0
+  - spacy=2.2.4
   - sqlite=3.31.1
+  - srsly=1.0.2
   - terminado=0.8.3
   - testpath=0.4.4
+  - thinc=7.4.0
   - tk=8.6.8
   - tornado=6.0.4
+  - tqdm=4.46.0
   - traitlets=4.3.3
-  - urllib3=1.25.8
+  - wasabi=0.6.0
   - wcwidth=0.1.9
   - webencodings=0.5.1
   - wheel=0.34.2
@@ -117,7 +121,7 @@ dependencies:
   - zipp=3.1.0
   - zlib=1.2.11
   - pip:
-    - click==7.1.2
-    - deon==0.2.1
-    - pyyaml==5.3.1
+    - emoji==0.5.4
+    - en-core-web-md==2.2.5
+    - spacymoji==2.0.0
 
