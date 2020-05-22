@@ -21,6 +21,7 @@ project_titles_text <- apply(d[,c("title", "text")],
 
 ## Build a corpus using the `Corpus` function: 
 project_corpus <- Corpus(VectorSource(project_titles_text))
+
 ## Build Doc Term Matrix without stemming
 project_DTM_no_stem <- DocumentTermMatrix(project_corpus,
                                   control = list(
@@ -44,6 +45,10 @@ top_words <- lapply(no_top, function(top)
 names(top_words) <- paste("Top", no_top)
 
 d <- cbind.data.frame(d, do.call("cbind", top_words))
+
+# Turn top words into character instead of factor, so they become searchable as words in data table
+df[["Top 5"]] <- as.character(df[["Top 5"]])
+df[["Top 10"]] <- as.character(df[["Top 10"]])
 
 ## read in clustering results
 
