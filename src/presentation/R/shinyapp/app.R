@@ -37,7 +37,8 @@ if (!require("tidyverse")) install.packages("tidyverse"); library("tidyverse")
 if (!require("plotly")) install.packages("plotly"); library("plotly") 
 if (!require("ggwordcloud")) install.packages("ggwordcloud"); library("ggwordcloud") 
 if (!require("RColorBrewer")) install.packages("RColorBrewer"); library("RColorBrewer") 
-
+if (!require("shinycssloaders")) install.packages("shinycssloaders"); library("shinycssloaders")
+#withSpinner()
 
 load(file = "data_shiny_app.rda")
 
@@ -62,7 +63,7 @@ ui <- basicPage(
   br(),
   textOutput("selected_method"),
   br(),
-  plotlyOutput("plot1"),
+  withSpinner(plotlyOutput("plot1"), type = 6),
 
   fluidRow(
     column(3, offset = 1, style = "background-color:#F8F8FF;",
@@ -75,7 +76,8 @@ ui <- basicPage(
       helpText("Select clusters in the left side bar table to visualize word clouds. 
                After selecting the clusters in the side bar table, press the action button."),
       actionButton("goButton", "Go!"),
-      plotOutput("plot3", height = "600px") #width = "750px", height="500px"
+      plotOutput("plot3") %>%
+        withSpinner(type = 4) #width = "750px", height="500px" , height = "600px"
       )
     ),
   hr(),
@@ -86,7 +88,8 @@ ui <- basicPage(
                If no cluster is selected this table contains all projects.  
                The search bar can be used for searching terms in the project title and project description."),  
            helpText("For those who want to do more advanced searches, the search bar also accepts JavaScript-based regular expressions."),
-           DT::dataTableOutput("table2")
+           DT::dataTableOutput("table2") %>%
+             withSpinner(type = 6)
     )
   )
 )
