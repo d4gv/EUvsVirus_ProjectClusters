@@ -1,4 +1,4 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
 [![Deon badge](https://img.shields.io/badge/ethics%20checklist-deon-brightgreen.svg?style=popout-square)](http://deon.drivendata.org/)
 
 EUvsVirus_ProjectClusters
@@ -7,7 +7,7 @@ EUvsVirus_ProjectClusters
 Collect project descriptions from EUvsVirus Hackathon devpost, and perform text analysis & clustering.
 
 ## Results
-Are accessible under [https://rania.shinyapps.io/euvsvirus_collab/](/https://rania.shinyapps.io/euvsvirus_collab/)
+Are accessible under [https://rania.shinyapps.io/euvsvirus_collab/](https://rania.shinyapps.io/euvsvirus_collab/)
 
 
 Project Organization
