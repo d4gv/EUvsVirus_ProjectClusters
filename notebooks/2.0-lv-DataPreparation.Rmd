@@ -1,0 +1,212 @@
+---
+title: "EUvsVirus Hackathon: Data preparation"
+author: Laura Vana
+output: 
+  html_notebook:
+    toc: true
+---
+
+## Loading and inspecting the data
+Loading the `all_data.tsv` data set:
+
+```{r}
+d <- read.delim("all_data.tsv", stringsAsFactors = FALSE)
+str(d)
+```
+
+We are dealing with `r nrow(d)` projects. The number of challenges under with the projects were submitted is:
+```{r}
+length(unique(d$Challenge))
+```
+The number of subchallenges:
+```{r}
+length(unique(d$SubChallenge))
+```
+
+## Pre-processing
+
+Let's have a closer look at the data set.
+
+### Missing descriptions
+
+First we check whether there are projects with no text description.
+```{r}
+no_of_characters <- sapply(seq_len(nrow(d)), function(i) nchar(d$text[i]))
+sum(no_of_characters == 0)
+```
+90 projects have no text description. **TODO** A random should be checked to see whether this is side-product of web scraping .
+  
+
+### Check for duplicates
+
+We check whether there are duplicated projects
+```{r}
+id_dup <- which(duplicated(d$text) & d$text != "")
+id_dup
+```
+5 projects have a description previously seen in the data set. 
+
+The first duplicated project: 
+```{r}
+d[which(d$text == d$text[id_dup[1]]), ]
+```
+This project has been submitted twice.
+
+Next, we observe the description `Built With\npython` for 3 projects. **TODO** might be a side-effect of web-scraping.
+```{r}
+d[which(d$text == d$text[id_dup[2]]), ]
+```
+
+Third, the `JumpStart-EU-Tourism` appears twice.
+```{r}
+d[which(d$text == d$text[id_dup[3]]), ]
+```
+
+Forth, we observe the description `Built With\nideano` for 2 projects. **TODO** might be a side-effect of web-scraping.
+```{r}
+d[which(d$text == d$text[id_dup[4]]), ]
+```
+
+###  Inspect further the number of characters of the description. 
+Very short descriptions might indicate problematic projects.
+
+```{r}
+summary(no_of_characters)
+```
+
+```{r fig.width=10, fig.height=10}
+plot(sort(no_of_characters), type = "l", ylab = "No of characters")
+abline(h = 200)
+```
+
+How many projects have a description with less than e.g., 200 characters? 
+```{r}
+sum(no_of_characters > 0 & no_of_characters < 200)
+```
+
+```{r}
+d[no_of_characters > 0 & no_of_characters < 200, ]
+```
+
+
+
+### Final data set
+For the final analysis we eliminate the projects with duplicated descriptions, missing descriptions or with descriptions with less than 200 characters. 
+
+```{r}
+id_keep <- no_of_characters >= 200 & !duplicated(d$text)
+d <- d[id_keep, ]
+dim(d)
+```
+
+### Language check
+Do we have submissions in different languages? For this we can use the **textcat** package in R:
+```{r}
+if (!require("textcat")) install.packages("textcat"); library("textcat")
+## this might take a while ...
+lang <- textcat(d$text)
+table(lang)
+```
+
+```{r}
+d$text[which(lang == "french")]
+```
+
+```{r}
+d$text[which(lang == "german")]
+```
+
+
+```{r}
+d$text[which(lang == "middle_frisian")]
+```
+
+```{r}
+d$text[which(lang == "scots")]
+```
+
+```{r}
+d$text[which(lang == "spanish")]
+```
+
+We only keep projects written in the English language.
+```{r}
+d <- d[lang %in% c("english", "scots"), ]
+```
+
+
+
+
+## Preparing the data for textual analysis
+
+For performing textual analysis, we will transforming the data into a `DocumentTermMatrix`, where each row represents one project and each column contains the words in each document.
+In R we can use the **tm** package for this purpose. We also load the **slam** library, which is a package for sparse matrices.
+```{r}
+if (!require("tm")) install.packages("tm"); library("tm")
+if (!require("slam")) install.packages("slam"); library("slam")
+```
+
+For each document, we can keep both the title of the project together with the description.
+First, paste the `title` and the `text` columns together:
+```{r}
+project_titles_text <- apply(d[,c("title", "text")],
+                             1, paste, collapse = " ")
+```
+Build a corpus using the `Corpus` function: 
+```{r}
+project_corpus <- Corpus(VectorSource(project_titles_text))
+```
+
+Build the `DocumentTermMatrix`. The following text pre-processing is done: 
+  * tokenization
+  
+  * stopword removal using default language specific stopword lists implemented in the package
+  
+  * stemming
+  
+  * remove punctuation
+  
+  * only keep words with at least three characters.
+  
+```{r}
+project_DTM <- DocumentTermMatrix(project_corpus,
+                                    control = list(
+                                      tokenize = "MC",
+                                      stopwords = TRUE,
+                                      stemming = TRUE,
+                                      removePunctuation = TRUE,
+                                      wordLengths = c(3, Inf)))
+
+dim(project_DTM)
+```
+
+The matrix is rather large, with `r ncol(project_DTM)` columns. 
+```{r}
+word_freq <- sort(col_sums(project_DTM), decreasing = TRUE)
+```
+
+Most common words:
+```{r}
+head(word_freq, 100)
+```
+
+Least common
+```{r}
+tail(word_freq, 100)
+```
+```{r}
+summary(word_freq)
+```
+More than half of the words appear once and at least 75% appear three times. We shall remove sparse terms appearing e.g., in less than 5% of the documents:
+
+```{r}
+project_DTM <- removeSparseTerms(project_DTM, 0.95)
+dim(project_DTM)
+```
+
+The data `project_DTM` will then be used further for the clustering algorithm.
+
+```{r}
+saveRDS(project_DTM, file = "project_DTM.rds")
+```
+
