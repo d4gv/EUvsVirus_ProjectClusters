@@ -2,6 +2,8 @@
 # This is a Shiny web application for visualizing the clustering results of the EUvsVirus Hackathon projects
 # To generate the app press the 'Run App' button above.
 #
+# This app is published on: https://rania.shinyapps.io/euvsvirus_collab/
+#
 # The app consists of five panes: 
 #    1) Figure 1: A two dimensional visualization of the clusters
 #       * For this visualization the T-Distributed Stochastic Neighbor Embedding  (TSNE)
@@ -30,70 +32,90 @@
 # 
 
 library(shiny)
-if (!require("DT")) install.packages("DT"); library("DT") 
-if (!require("ggplot2")) install.packages("ggplot2"); library("ggplot2") 
+if (!require("DT")) install.packages("DT"); library("DT")
+if (!require("tidyverse")) install.packages("tidyverse"); library("tidyverse") 
 if (!require("plotly")) install.packages("plotly"); library("plotly") 
 if (!require("ggwordcloud")) install.packages("ggwordcloud"); library("ggwordcloud") 
 if (!require("RColorBrewer")) install.packages("RColorBrewer"); library("RColorBrewer") 
-
+if (!require("shinycssloaders")) install.packages("shinycssloaders"); library("shinycssloaders")
+#withSpinner()
 
 load(file = "data_shiny_app.rda")
 
+# add the clickable project URL
+df$ProjectLink <- paste0('<a href = "', df$ID , '", target = "blank">', df$Title, '</a>')
+
 # Define UI for application that draws a histogram
 ui <- basicPage(
-    titlePanel("Clustering of EUvsVirus Projects"),
-    helpText("Select a clustering method. Each method delivers a different grouping of the projects."),
-    selectInput("method", "Select method:",
-                c("Topic models" = "tm",
-                  "Hierarchical clustering" = "hc")),
-    hr(),
-    textOutput("selected_method"),
-    plotlyOutput("plot1"),
-    # verbatimTextOutput("help"),
-    sidebarLayout(
-      sidebarPanel(
-        h3("Clusters"),
-        helpText("Clusters can also be selected in this table by clicking on the respective rows."),
-        DT::dataTableOutput("table1")
-      ),
-      mainPanel(
-        h3("Projects"),
-        helpText("This table contains the title of all projects in the clusters in the side table. 
-                 If no cluster is selected this table contains all projects.  
-                 The search bar can be used for searching terms in the project title and project description.
-                 In order to see the formatted project description see table below. "),
-        DT::dataTableOutput("table2"),
-        h3("Project descriptions"),
-        helpText("This table contains the descriptions for the projects selected in the above table.
-                 In order to select a project above, click on the respective row."),
-        DT::dataTableOutput("abstracts"),
-        hr(),
-        h3("Visualization of common words"),
-        helpText("Select clusters in the left side bar table to visualize word clouds. 
-                 After selecting the clusters in the side bar table, press the action button."),
-        actionButton("goButton", "Go!"),
-        plotOutput("plot3")#, width = "750px", height="500px")
+  titlePanel("Clustering of EUvsVirus Projects"),
+  helpText(p("This app and the models presented in it are the result of a group effort by Jillian Augustine, Thomas Treml, Laura Vana, and Rania Wazir, of ",
+             a("VDSG/data4good", href = "https://www.vdsg.at/data4good", target = "blank"), ", and ",
+             a("R-Ladies Vienna.", href = "https://www.meetup.com/rladies-vienna/", target = "blank"))),
+  br(),
+  helpText("Select a clustering method. Each method delivers a different grouping of the projects."),
+  helpText("NOTE: Currently, Hierarchical clustering (2) and (3) are the same.  A new model will replace (3) shortly."),
+  selectInput("method", "Select method:",
+              c("Topic models" = "tm",
+                "Hierarchical clustering (1)" = "hc1",
+                "Hierarchical clustering (2)" = "hc2",
+                "Hierarchical clustering (3)" = "hc3")),
+  hr(),
+  br(),
+  textOutput("selected_method"),
+  br(),
+  withSpinner(plotlyOutput("plot1"), type = 6),
+
+  fluidRow(
+    column(3, offset = 1, style = "background-color:#F8F8FF;",
+      h3("Clusters"),
+      helpText("Clusters can also be selected in this table by clicking on the respective rows."),
+      DT::dataTableOutput("table1")
+    ),
+    column(8,
+      h3("Visualization of common words"),
+      helpText("Select clusters in the left side bar table to visualize word clouds. 
+               After selecting the clusters in the side bar table, press the action button."),
+      actionButton("goButton", "Go!"),
+      plotOutput("plot3") %>%
+        withSpinner(type = 4) #width = "750px", height="500px" , height = "600px"
       )
+    ),
+  hr(),
+  fluidRow(
+    column(10, offset = 1, style = "background-color:#DCDCDC;",
+           h3("Projects"),
+           helpText("This table contains the title of all projects in the clusters in the table above. 
+               If no cluster is selected this table contains all projects.  
+               The search bar can be used for searching terms in the project title and project description."),  
+           helpText("For those who want to do more advanced searches, the search bar also accepts JavaScript-based regular expressions."),
+           DT::dataTableOutput("table2") %>%
+             withSpinner(type = 6)
     )
+  )
 )
+
 
 server <- function(input, output) {
   ## Plot the cluster centers based on the dimensionality reduction
-  output$selected_method <- renderText({ 
+  output$selected_method <- renderText({
     if (!is.null(input$method)) {
-      method <- switch(input$method, 
+      method <- switch(input$method,
                        "tm" = "Topic models",
-                       "hc"=  "Hierarchical clustering" )
+                       "hc1"=  "Hierarchical clustering (1)",
+                       "hc2"=  "Hierarchical clustering (2)",
+                       "hc3"=  "Hierarchical clustering (3)")      
       
-      
-      sprintf("You have selected the method %s. The method delivers %i clusters or groups. For this grouping, you can now select clusters for inspection in the figure below by using the lasso or the box selection tool. The size of the points is proportional to the number of projects in each cluster.", 
-              method, nlevels(df[, grepl(input$method, colnames(df))]))
+      sprintf("The %s method delivers %i clusters or groups. For this grouping, you can now select clusters for inspection in the figure below by using the lasso or the box selection tool. The size of the points is proportional to the number of projects in each cluster.",
+              method, nlevels( factor(df[, grepl(input$method, colnames(df))])))
     }
   })
   
   get_data_selected_method <- reactive({
-    df$Cluster <- df[, grepl(input$method, colnames(df))]
+    df$ClusterName <- df[, grepl(input$method, colnames(df))]
     df <- df[, !grepl("method", colnames(df))]
+    df <- df %>%
+      mutate(Cluster = str_extract(ClusterName, "\\d+") %>%
+               as.integer())
     df[order(df$Cluster), ]
   })
   
@@ -102,25 +124,26 @@ server <- function(input, output) {
   })
   output$help <- renderPrint({
     str(agg_cluster_project_DTM())
-
+    
   })
   get_centers <- reactive({
     d <-   get_data_selected_method()
-    centers <- aggregate(cbind(x1, x2) ~ Cluster, d, mean)
-    centers <- cbind.data.frame(centers, noProjects = c(unname(table(d$Cluster))))
+    centers <- aggregate(cbind(x1, x2) ~ Cluster + ClusterName, d, mean)
+    centers <- cbind.data.frame(centers, NumberOfProjects = c(unname(table(d$Cluster))))
     centers
   })
   
-
   output$plot1 <- renderPlotly({
     p <- ggplot(data =  get_centers(), aes(x = x1, y = x2, label = Cluster)) +
-      geom_point(aes(size = noProjects, alpha=.02)) +
+      geom_point(aes(size = NumberOfProjects, alpha=.02), color = "blue") +
       scale_size(range = c(1.4, 10), name = "Number of projects") +
       xlab("") + ylab("")
-    
-    ggplotly(p, source = "selected_clusters", tooltip=c("noProjects", "Cluster"))  %>% layout(dragmode = "lasso")
+
+    ggplotly(p, source = "selected_clusters", tooltip=c("size", "label"))  %>% 
+      layout(dragmode = "lasso")
   })
   
+
   get_selected_clusters_from_plot <- reactive({
     d <- event_data("plotly_selected", source = "selected_clusters")
     if (!is.null(d) & length(d) != 0) d[d$curveNumber == 0, "pointNumber"] + 1
@@ -130,50 +153,43 @@ server <- function(input, output) {
     centers <- get_centers()
     id <- get_selected_clusters_from_plot()
     if (is.null(id)) id <- 1:nrow(centers)
-    centers[id,  c("Cluster", "noProjects")]
+    centers[id,  c("ClusterName", "Cluster", "NumberOfProjects")]
   })
   
   output$table1 <- DT::renderDataTable({
-      selected_clusters_table()
-    })
-
+    selected_clusters_table()
+  },
+  filter = "top",
+  options = list(dom = "ltipr",
+                 pageLength = 10,
+                 lengthMenu = list(c(10, 20, 50, -1), c("10", "20", "50", "All")),
+                 columnDefs = list(list(visible = FALSE, targets = c(0, 1))))
+  )
+  
   selected_clusters_2 <- reactive({
     d <- selected_clusters_table()
     s <- input$table1_rows_selected
     if (is.null(s)) s <- 1:nrow(d)
     d[s, ]
   })
-
+  
+  
   #  highlight selected rows and print them
   output$table2 <- DT::renderDataTable({
     d <- selected_clusters_2()
     df <- get_data_selected_method()
-    tmp <- df[df$Cluster %in% d$Cluster, c("Cluster", "Title", "Description")]
-    datatable(tmp, extensions = 'RowGroup',
-              options = list(rowGroup = list(dataSrc = 1), 
-                             columnDefs = list(list(visible = FALSE, targets = c(1,3)))))
-  })
+    tmp <- df[df$Cluster %in% d$Cluster, c("ClusterName", "ProjectLink", "Description", "Challenge", "SubChallenge", "Top 5", "Top 10")]
+  },
+  filter = "top",
+  escape = c(TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE),
+  extensions = 'RowGroup',
+  options = list(rowGroup = list(dataSrc = 1), 
+                 search = list(regex = TRUE),
+                 pageLength = 10,
+                 lengthMenu = list(c(10, 20, 50, -1), c("10", "20", "50", "All")),
+                 columnDefs = list(list(visible = FALSE, targets = c(0, 1, 3)))))
   
-  ## Documents in the selected clusters
-  data_selected_clusters <- reactive({
-    df <- get_data_selected_method()
-    sel_cluster <- selected_clusters_2()
-    subset(df, Cluster %in% sel_cluster$Cluster)
-  })
-
-  ## Documents in the selected titles
-  data_selected_titles <- reactive({
-    d <- data_selected_clusters()
-    s <- input$table2_rows_selected
-    d[s, c("Title", "Description")]
-  })
   
-  ## Print the text of the documents in the selected clusters
-  output$abstracts <- DT::renderDataTable({
-    data_selected_titles()
-  })
-
-
   ## generate and plot the word cloud for the selected clusters max 6 groups
   output$plot3 <-  renderPlot({
     input$goButton
@@ -184,7 +200,7 @@ server <- function(input, output) {
       if (!is.null(s)) {
         sel_cluster <- selected_clusters_2()
         long <- agg_cluster_project_DTM()
-        d <- long[long$Cluster %in% sel_cluster$Cluster, ]
+        d <- long[long$Cluster %in% sel_cluster$ClusterName, ]
         
         p <- ggplot(d, aes(label = word, size = freq, angle = angle, col = freq)) +
           geom_text_wordcloud(rm_outside = TRUE, max_steps = 1,
