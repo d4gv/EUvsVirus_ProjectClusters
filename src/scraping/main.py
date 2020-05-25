@@ -15,7 +15,7 @@ Script crawls endpoints provided by devpost-api project by ViRb3
 
 Data are persisted as JSON dump in data directory.
 
-Author: datadonk23
+Authors: jill-augustine, datadonk23
 Date: 07.05.20 
 """
 

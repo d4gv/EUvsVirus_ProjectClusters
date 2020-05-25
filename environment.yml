@@ -1,5 +1,6 @@
 name: EUvsVirus_ProjectClusters
 channels:
+  - districtdatalabs
   - defaults
 dependencies:
   - _libgcc_mutex=0.1
@@ -14,9 +15,12 @@ dependencies:
   - chardet=3.0.4
   - cryptography=2.9.2
   - cycler=0.10.0
+  - cymem=2.0.2
+  - cytoolz=0.9.0.1
   - dbus=1.13.14
   - decorator=4.4.2
   - defusedxml=0.6.0
+  - dill=0.2.9
   - entrypoints=0.3
   - expat=2.2.6
   - fontconfig=2.13.0
@@ -28,13 +32,13 @@ dependencies:
   - icu=58.2
   - idna=2.9
   - importlib_metadata=1.5.0
-  - intel-openmp=2020.0
   - ipykernel=5.1.4
   - ipython=7.13.0
   - ipython_genutils=0.2.0
   - ipywidgets=7.5.1
   - jedi=0.17.0
   - jinja2=2.11.2
+  - joblib=0.14.1
   - jpeg=9b
   - jsonschema=3.2.0
   - jupyter=1.0.0
@@ -47,6 +51,7 @@ dependencies:
   - libffi=3.2.1
   - libgcc-ng=9.1.0
   - libgfortran-ng=7.3.0
+  - libopenblas=0.3.6
   - libpng=1.6.37
   - libsodium=1.0.16
   - libstdcxx-ng=9.1.0
@@ -57,10 +62,10 @@ dependencies:
   - matplotlib=3.1.3
   - matplotlib-base=3.1.3
   - mistune=0.8.4
-  - mkl=2020.0
-  - mkl-service=2.3.0
-  - mkl_fft=1.0.15
-  - mkl_random=1.1.0
+  - more-itertools=8.2.0
+  - msgpack-numpy=0.4.3.2
+  - msgpack-python=0.6.1
+  - murmurhash=1.0.2
   - nbconvert=5.6.1
   - nbformat=5.0.6
   - ncurses=6.2
@@ -68,6 +73,7 @@ dependencies:
   - numpy=1.18.1
   - numpy-base=1.18.1
   - openssl=1.1.1g
+  - packaging=20.3
   - pandas=1.0.3
   - pandoc=2.2.3.2
   - pandocfilters=1.4.2
@@ -76,10 +82,14 @@ dependencies:
   - pexpect=4.8.0
   - pickleshare=0.7.5
   - pip=20.0.2
+  - plac=0.9.6
+  - pluggy=0.13.1
+  - preshed=2.0.1
   - prometheus_client=0.7.1
   - prompt-toolkit=3.0.4
   - prompt_toolkit=3.0.4
   - ptyprocess=0.6.0
+  - py=1.8.1
   - pycparser=2.20
   - pygments=2.6.1
   - pyopenssl=19.1.0
@@ -87,7 +97,9 @@ dependencies:
   - pyqt=5.9.2
   - pyrsistent=0.16.0
   - pysocks=1.7.1
-  - python=3.8.2
+  - pytest=5.4.1
+  - pytest-runner=5.2
+  - python=3.6.10
   - python-dateutil=2.8.1
   - pytz=2020.1
   - pyzmq=18.1.1
@@ -95,29 +107,43 @@ dependencies:
   - qtconsole=4.7.3
   - qtpy=1.9.0
   - readline=8.0
+  - regex=2020.4.4
   - requests=2.23.0
+  - scikit-learn=0.22.1
+  - scipy=1.4.1
   - send2trash=1.5.0
-  - setuptools=46.1.3
-  - sip=4.19.13
+  - setuptools=46.2.0
+  - sip=4.19.8
   - six=1.14.0
   - soupsieve=2.0
+  - spacy=2.0.16
   - sqlite=3.31.1
   - terminado=0.8.3
   - testpath=0.4.4
+  - thinc=6.12.1
   - tk=8.6.8
+  - toolz=0.10.0
   - tornado=6.0.4
+  - tqdm=4.46.0
   - traitlets=4.3.3
+  - ujson=2.0.3
   - urllib3=1.25.8
   - wcwidth=0.1.9
   - webencodings=0.5.1
   - wheel=0.34.2
   - widgetsnbextension=3.5.1
+  - wrapt=1.10.11
   - xz=5.2.5
+  - yellowbrick=1.1
   - zeromq=4.3.1
   - zipp=3.1.0
   - zlib=1.2.11
   - pip:
-    - click==7.1.2
-    - deon==0.2.1
-    - pyyaml==5.3.1
+    - emoji==0.5.4
+    - en-core-web-md==2.2.5
+    - funcy==1.14
+    - future==0.18.2
+    - numexpr==2.7.1
+    - pyldavis==2.1.2
+    - spacymoji==2.0.0
 

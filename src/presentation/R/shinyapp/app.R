@@ -32,7 +32,7 @@
 # 
 
 library(shiny)
-if (!require("DT")) install.packages("DT"); library("DT") 
+if (!require("DT")) install.packages("DT"); library("DT")
 if (!require("tidyverse")) install.packages("tidyverse"); library("tidyverse") 
 if (!require("plotly")) install.packages("plotly"); library("plotly") 
 if (!require("ggwordcloud")) install.packages("ggwordcloud"); library("ggwordcloud") 
@@ -189,7 +189,6 @@ server <- function(input, output) {
                  lengthMenu = list(c(10, 20, 50, -1), c("10", "20", "50", "All")),
                  columnDefs = list(list(visible = FALSE, targets = c(0, 1, 3)))))
   
-
   
   ## generate and plot the word cloud for the selected clusters max 6 groups
   output$plot3 <-  renderPlot({

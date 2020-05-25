@@ -3,7 +3,7 @@
 
 Utility methods for making requests.
 
-Author: datadonk23
+Authors: jill-augustine, datadonk23
 Date: 07.05.20 
 """
 
