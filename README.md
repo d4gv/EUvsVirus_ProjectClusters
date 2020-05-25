@@ -1,7 +1,14 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Deon badge](https://img.shields.io/badge/ethics%20checklist-deon-brightgreen.svg?style=popout-square)](http://deon.drivendata.org/)
+
 EUvsVirus_ProjectClusters
 ==============================
 
 Collect project descriptions from EUvsVirus Hackathon devpost, and perform text analysis & clustering.
+
+## Results
+Are accessible under [https://rania.shinyapps.io/euvsvirus_collab/](/https://rania.shinyapps.io/euvsvirus_collab/)
+
 
 Project Organization
 ------------
@@ -53,6 +60,10 @@ Project Organization
 * [Jillian Augustine](https://github.com/jill-augustine)
 * [Laura Vana](https://github.com/lauravana)
 * [Thomas Treml](https://github.com/datadonK23)
+
+
+## License
+[MIT](LICNSE)
 
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
