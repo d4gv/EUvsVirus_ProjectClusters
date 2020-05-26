@@ -38,7 +38,7 @@ if (!require("plotly")) install.packages("plotly"); library("plotly")
 if (!require("ggwordcloud")) install.packages("ggwordcloud"); library("ggwordcloud") 
 if (!require("RColorBrewer")) install.packages("RColorBrewer"); library("RColorBrewer") 
 if (!require("shinycssloaders")) install.packages("shinycssloaders"); library("shinycssloaders")
-#withSpinner()
+
 
 load(file = "data_shiny_app.rda")
 
@@ -84,10 +84,12 @@ ui <- basicPage(
   fluidRow(
     column(10, offset = 1, style = "background-color:#DCDCDC;",
            h3("Projects"),
-           helpText("This table contains the title of all projects in the clusters in the table above. 
+           helpText("This table contains the title of all projects in the clusters selected in the table above. 
                If no cluster is selected this table contains all projects.  
                The search bar can be used for searching terms in the project title and project description."),  
            helpText("For those who want to do more advanced searches, the search bar also accepts JavaScript-based regular expressions."),
+           helpText("Also, please note that the download button only downloads the data currently visible on the screen.  
+                    To download all data, make sure 'Show entries' is set to 'All'."),
            DT::dataTableOutput("table2") %>%
              withSpinner(type = 6)
     )
@@ -182,9 +184,11 @@ server <- function(input, output) {
   },
   filter = "top",
   escape = c(TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE),
-  extensions = 'RowGroup',
+  extensions = c("Buttons", 'RowGroup'),
   options = list(rowGroup = list(dataSrc = 1), 
+                 dom = "Bfltipr",
                  search = list(regex = TRUE),
+                 buttons = c('copy', 'csv', 'excel', 'pdf'),
                  pageLength = 10,
                  lengthMenu = list(c(10, 20, 50, -1), c("10", "20", "50", "All")),
                  columnDefs = list(list(visible = FALSE, targets = c(0, 1, 3)))))
