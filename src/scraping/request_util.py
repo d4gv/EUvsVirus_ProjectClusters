@@ -4,17 +4,19 @@
 Utility methods for making requests.
 
 Authors: jill-augustine, datadonk23
-Date: 07.05.20 
+Date: 07.05.20
 """
 
 import requests as req
 
+
 def make_request(url):
-    """ Request to API endpoint
+    """
+    Request to API endpoint.
 
     :param url: URL
-    :type url: str
-    :return: response
+    :type url:  str
+    :return:    response
     """
     resp = None
     try:
@@ -31,28 +33,21 @@ def make_request(url):
 
     return resp
 
-def filter_response(resp):
-    """ Filters requests according to desired schema.
 
-    :param resp: requests.Response
-    :return: Filtered data
+def filter_response(resp):
+    """
+    Filters requests according to desired schema.
+
+    :param resp:  requests.Response
+    :return:      Filtered data
     :return type: dict
     """
     data = {}
-    
+
     if resp is not None:
         json_resp = resp.json()
 
-        if json_resp["title"]:
-            data["title"] = json_resp["title"]
-        else:
-            data["title"] = None
+        data["title"] = json_resp.get("title")
+        data["text"] = json_resp.get("text")
 
-        if json_resp["text"]:
-            data["text"] = json_resp["text"]
-        else:
-            data["text"] = None
-    
     return data
-
-    
