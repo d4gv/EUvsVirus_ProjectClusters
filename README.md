@@ -61,6 +61,8 @@ Project Organization
 * [Laura Vana](https://github.com/lauravana)
 * [Thomas Treml](https://github.com/datadonK23)
 
+Code Review: Stephan Wöber
+
 
 ## License
 [MIT](LICENSE)
