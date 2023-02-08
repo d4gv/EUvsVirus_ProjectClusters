@@ -21,7 +21,7 @@ emoji==0.5.4
 en-core-web-md==2.2.5
 entrypoints==0.3
 funcy==1.14
-future==0.18.2
+future==0.18.3
 gensim==3.8.0
 google-api-core==1.17.0
 google-auth==1.14.1
