@@ -117,4 +117,4 @@ webencodings==0.5.1
 widgetsnbextension==3.5.1
 wrapt==1.10.11
 yellowbrick==1.1
-zipp==3.1.0
+zipp==3.19.1
