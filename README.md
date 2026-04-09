@@ -1,6 +1,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
 [![Deon badge](https://img.shields.io/badge/ethics%20checklist-deon-brightgreen.svg?style=popout-square)](http://deon.drivendata.org/)
 
+> [!WARNING]
+> **Deprecated.** This repo is not maintained since 09.04.2026.
+
 EUvsVirus_ProjectClusters
 ==============================
 
